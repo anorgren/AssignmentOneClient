@@ -95,7 +95,7 @@ public class ApiClient {
     /**
      * Get base path
      *
-     * @return Baes path
+     * @return Base path
      */
     public String getBasePath() {
         return basePath;

@@ -16,6 +16,7 @@ buildscript {
 
 repositories {
     jcenter()
+    mavenCentral()
 }
 
 
@@ -78,8 +79,8 @@ if(hasProperty('target') && target == 'android') {
     apply plugin: 'java'
     apply plugin: 'maven'
 
-    sourceCompatibility = JavaVersion.VERSION_1_7
-    targetCompatibility = JavaVersion.VERSION_1_7
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 
     install {
         repositories.mavenInstaller {
@@ -100,5 +101,16 @@ dependencies {
     compile 'com.google.code.gson:gson:2.8.1'
     compile 'io.gsonfire:gson-fire:1.8.3'
     compile 'org.threeten:threetenbp:1.3.5'
+    compile "io.swagger:swagger-java-client:1.0.0"
+    compile "javax.annotation:javax.annotation-api:1.3.2"
     testCompile 'junit:junit:4.12'
+
+    compileOnly 'org.projectlombok:lombok:1.18.14'
+    annotationProcessor 'org.projectlombok:lombok:1.18.14'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.14'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.14'
+
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.13.3'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.13.3'
 }
