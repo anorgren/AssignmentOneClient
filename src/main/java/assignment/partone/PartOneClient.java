@@ -15,6 +15,8 @@ import java.util.stream.IntStream;
 
 public class PartOneClient {
     private static final String CONFIG_FILE_PATH = "client_config.properties";
+    private static final double MILLISECONDS_IN_SECOND = 1000.0;
+
     private static final int MAX_THREAD_DENOMINATOR = 4;
 
     private static final int PHASE_ONE_TIME_START = 1;
@@ -162,13 +164,13 @@ public class PartOneClient {
 
     private static void printResults(Parameters parameters, long startTime, long endTime,
                                      AtomicInteger successCount, AtomicInteger failureCount) {
-        long wallTime = endTime - startTime;
-        long throughput = (successCount.get() + failureCount.get()) / wallTime;
+        double wallTime = (endTime - startTime) / MILLISECONDS_IN_SECOND;
+        double throughput = (successCount.get() + failureCount.get()) / wallTime;
 
         System.out.println("Max Threads: " + parameters.getMaxThreadCount());
         System.out.println("Number of Successful Requests Sent: " + successCount);
         System.out.println("Number of Unsuccessful Requests: " + failureCount);
-        System.out.println("Wall Time: " + wallTime);
-        System.out.println("Throughput: " + throughput);
+        System.out.println("Wall Time(s): " + wallTime);
+        System.out.println("Throughput(req/s): " + throughput);
     }
 }

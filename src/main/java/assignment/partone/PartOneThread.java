@@ -1,6 +1,7 @@
 package assignment.partone;
 
 
+import assignment.parttwo.PartTwoThread;
 import io.swagger.client.ApiClient;
 import io.swagger.client.ApiException;
 import io.swagger.client.ApiResponse;
@@ -10,6 +11,7 @@ import io.swagger.client.model.SkierVertical;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.concurrent.CountDownLatch;
@@ -25,7 +27,8 @@ public class PartOneThread implements Runnable {
     private static final int GET_SUCCESS_CODE = 200;
     private static final String DEFAULT_DAY = "42";
 
-    private Logger logger;
+    private static final Logger logger =
+            LogManager.getLogger(PartOneThread.class);
 
     private int skierIdBegin;
     private int skierIdEnd;

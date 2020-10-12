@@ -16,6 +16,8 @@ import java.util.stream.IntStream;
 
 public class PartTwoClient {
     private static final String CONFIG_FILE_PATH = "client_config.properties";
+    private static final double MILLISECONDS_IN_SECOND = 1000.0;
+
     private static final int MAX_THREAD_DENOMINATOR = 4;
 
     private static final int PHASE_ONE_TIME_START = 1;
@@ -108,14 +110,13 @@ public class PartTwoClient {
                     failureCount,
                     requestStatistics);
 
-            phaseThreeLatch.await();
             totalCountDownLatch.await();
 
             logger.log(Level.INFO, "Client processed all requests");
             long endTime = System.currentTimeMillis();
 
             requestStatistics.calculatePerformanceMetrics();
-            requestStatistics.generateCsvFile("testOutput.csv");
+            requestStatistics.generateCsvFile("phaseTwo4096Threads.csv");
 
             printResults(requestStatistics, parameters, programStartTime, endTime, successCount, failureCount);
         } else {
@@ -149,6 +150,7 @@ public class PartTwoClient {
                     PartTwoThread clientThread =
                             PartTwoThread.builder()
                                     .serverAddress(parameters.getHostServerAddress())
+                                    .day(parameters.getSkiDayNumber())
                                     .phaseLatch(phaseLatch)
                                     .endLatch(endLatch)
                                     .getRequestCount(getRequestCount)
@@ -176,21 +178,21 @@ public class PartTwoClient {
             AtomicInteger successCount,
             AtomicInteger failureCount) {
 
-        long wallTime = endTime - startTime;
-        long throughput = (successCount.get() + failureCount.get()) / wallTime;
+        double wallTime = (endTime - startTime)/MILLISECONDS_IN_SECOND;
+        double throughput = (successCount.get() + failureCount.get()) / wallTime;
 
         System.out.println("Max Threads: " + parameters.getMaxThreadCount());
         System.out.println("Number of Successful Requests Sent: " + successCount);
         System.out.println("Number of Unsuccessful Requests: " + failureCount);
-        System.out.println("Total Wall Time: " + wallTime);
-        System.out.println("Throughput: " + throughput);
-        System.out.println("Mean POST response time: " + requestStatistics.getMeanPostLatency());
-        System.out.println("Mean GET response time: " + requestStatistics.getMeanGetLatency());
-        System.out.println("Median POST response time: " + requestStatistics.getMedianPostLatency());
-        System.out.println("Median GET response time: " + requestStatistics.getMedianGetLatency());
-        System.out.println("Max POST response time: " + requestStatistics.getMaxPostResponseTime());
-        System.out.println("Max GET response time: " + requestStatistics.getMaxGetResponseTime());
-        System.out.println("99th Percentile POST response time: " + requestStatistics.getP99PostResponseTime());
-        System.out.println("99th Percentile GET response time: " + requestStatistics.getP99GetResponseTime());
+        System.out.println("Total Wall Time(s): " + wallTime);
+        System.out.println("Throughput (req/s): " + throughput);
+        System.out.println("Mean POST response time(ms): " + requestStatistics.getMeanPostLatency());
+        System.out.println("Mean GET response time(ms): " + requestStatistics.getMeanGetLatency());
+        System.out.println("Median POST response time(ms): " + requestStatistics.getMedianPostLatency());
+        System.out.println("Median GET response time(ms): " + requestStatistics.getMedianGetLatency());
+        System.out.println("Max POST response time(ms): " + requestStatistics.getMaxPostResponseTime());
+        System.out.println("Max GET response time(ms): " + requestStatistics.getMaxGetResponseTime());
+        System.out.println("99th Percentile POST response time(ms): " + requestStatistics.getP99PostResponseTime());
+        System.out.println("99th Percentile GET response time(ms): " + requestStatistics.getP99GetResponseTime());
     }
 }

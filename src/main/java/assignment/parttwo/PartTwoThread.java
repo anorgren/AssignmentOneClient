@@ -1,6 +1,7 @@
 package assignment.parttwo;
 
 
+import assignment.partone.PartOneClient;
 import io.swagger.client.ApiClient;
 import io.swagger.client.ApiException;
 import io.swagger.client.ApiResponse;
@@ -10,6 +11,7 @@ import io.swagger.client.model.SkierVertical;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.concurrent.CountDownLatch;
@@ -25,13 +27,15 @@ public class PartTwoThread implements Runnable {
     private static final int GET_SUCCESS_CODE = 200;
     private static final String DEFAULT_DAY = "42";
 
-    private Logger logger;
+    private static final Logger logger =
+            LogManager.getLogger(PartTwoThread.class);
 
     private int skierIdBegin;
     private int skierIdEnd;
     private int startTime;
     private int endTime;
     private int liftCount;
+    private int day;
     private int getRequestCount;
     private int postRequestCount;
 
@@ -52,6 +56,8 @@ public class PartTwoThread implements Runnable {
         ApiClient apiClient = skiersApi.getApiClient();
         apiClient.setBasePath(serverAddress);
 
+        String dayString = String.valueOf(day);
+
         IntStream.range(0, postRequestCount)
                 .forEach(val -> {
                     String randSkierId = String.valueOf(
@@ -62,7 +68,7 @@ public class PartTwoThread implements Runnable {
                             ThreadLocalRandom.current().nextInt(startTime, endTime + 1));
 
                     LiftRide reqBody = new LiftRide()
-                            .dayID(DEFAULT_DAY)
+                            .dayID(dayString)
                             .time(randTime)
                             .skierID(randSkierId)
                             .liftID(randLiftId)
@@ -96,7 +102,7 @@ public class PartTwoThread implements Runnable {
                         long startTime = System.currentTimeMillis();
 
                         ApiResponse<SkierVertical> res =
-                                skiersApi.getSkierDayVerticalWithHttpInfo(resortName, DEFAULT_DAY, randSkierId);
+                                skiersApi.getSkierDayVerticalWithHttpInfo(resortName, dayString, randSkierId);
                         incrementCounts(res.getStatusCode() == GET_SUCCESS_CODE);
 
                         long endTime = System.currentTimeMillis();

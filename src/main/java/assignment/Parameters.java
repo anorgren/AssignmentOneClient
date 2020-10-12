@@ -42,7 +42,7 @@ public class Parameters {
     private static final String DEFAULT_SKIER_COUNT = "50000";
     private static final String DEFAULT_DAY = "1";
     private static final int MINIMUM_THREAD_COUNT_LIMIT = 4;
-    private static final int MAXIMUM_THREAD_COUNT_LIMIT = 256;
+    private static final int MAXIMUM_THREAD_COUNT_LIMIT = 10000000;
     private static final String DEFAULT_FILE_NAME = "output_file";
     private static final String DEFAULT_SERVER_ADDRESS = "localhost";
 
