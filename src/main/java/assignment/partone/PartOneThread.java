@@ -87,6 +87,7 @@ public class PartOneThread implements Runnable {
                                 skiersApi.getSkierDayVerticalWithHttpInfo(resortName, DEFAULT_DAY, randSkierId);
                         incrementCounts(res.getStatusCode() == GET_SUCCESS_CODE);
                     } catch (ApiException e) {
+                        failureCount.incrementAndGet();
                         logger.log(Level.ERROR, e.getMessage());
                     }
                 });
@@ -102,6 +103,4 @@ public class PartOneThread implements Runnable {
             failureCount.incrementAndGet();
         }
     }
-
-    // TODO make more informative log messages when exceptions occur
 }

@@ -114,6 +114,7 @@ public class PartTwoThread implements Runnable {
                                         .build();
                         requestStatistics.getGetRequestStatistics().add(stats);
                     } catch (ApiException e) {
+                        failureCount.incrementAndGet();
                         logger.log(Level.ERROR, e.getMessage());
                     }
                 });
