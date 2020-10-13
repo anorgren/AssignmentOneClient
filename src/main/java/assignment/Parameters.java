@@ -44,7 +44,8 @@ public class Parameters {
     private static final int MINIMUM_THREAD_COUNT_LIMIT = 4;
     private static final int MAXIMUM_THREAD_COUNT_LIMIT = 256;
     private static final String DEFAULT_FILE_NAME = "output_file";
-    private static final String DEFAULT_SERVER_ADDRESS = "localhost";
+    private static final String DEFAULT_SERVER_ADDRESS =
+            "http://ec2-18-236-236-150.us-west-2.compute.amazonaws.com:8080/SkiServerWar";
 
     private int maxThreadCount;
     private int skierCount;
@@ -65,7 +66,7 @@ public class Parameters {
         } catch (IOException ioe) {
             System.out.println("Could not read properties file");
         }
-        return Optional.empty();
+        return Optional.of(createDefaultParameters());
     }
 
     private static Parameters propertiesToParameters(Properties properties) {
@@ -120,5 +121,16 @@ public class Parameters {
             }
         }
         return true;
+    }
+
+    private static Parameters createDefaultParameters() {
+        return Parameters.builder()
+                .resortId(DEFAULT_RESORT_ID)
+                .maxThreadCount(256)
+                .skiDayNumber(Integer.parseInt(DEFAULT_DAY))
+                .liftCount(Integer.parseInt(DEFAULT_LIFT_COUNT))
+                .hostServerAddress(DEFAULT_SERVER_ADDRESS)
+                .skierCount(Integer.parseInt(DEFAULT_SKIER_COUNT))
+                .build();
     }
 }
