@@ -27,7 +27,6 @@ public class PartTwoThread implements Runnable {
     private static final int POST_SUCCESS_CODE = 201;
     private static final int GET_SUCCESS_CODE = 200;
     private static final int GET_SUCCESS_CODE_NO_DATA = 204;
-    private static final int[] RETRY_WAIT_TIMES = new int[]{10, 25, 50, 75, 100};
 
     private static final Logger logger =
             LogManager.getLogger(PartTwoThread.class);
@@ -108,8 +107,6 @@ public class PartTwoThread implements Runnable {
                 .forEach(val -> {
                     String randSkierId = String.valueOf(
                             ThreadLocalRandom.current().nextInt(skierIdBegin, skierIdEnd + 1));
-                    int retriesAttempted = 0;
-
                     try {
                         long startTime = System.currentTimeMillis();
 
