@@ -1,19 +1,21 @@
-package assignment.partone;
+package assignment.client;
 
 import assignment.Parameters;
+import assignment.statistics.RequestStatistics;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 
-public class PartOneClient {
+public class PartTwoClient {
     private static final String CONFIG_FILE_PATH = "client_config.properties";
     private static final double MILLISECONDS_IN_SECOND = 1000.0;
 
@@ -27,22 +29,26 @@ public class PartOneClient {
     private static final int PHASE_THREE_TIME_END = 420;
 
     private static final int PHASE_ONE_GET_REQ_COUNT = 5;
-    private static final int PHASE_ONE_POST_REQ_COUNT = 100;
+    private static final int PHASE_ONE_POST_REQ_COUNT = 1000;
     private static final int PHASE_TWO_GET_REQ_COUNT = 5;
-    private static final int PHASE_TWO_POST_REQ_COUNT = 100;
+    private static final int PHASE_TWO_POST_REQ_COUNT = 1000;
     private static final int PHASE_THREE_GET_REQ_COUNT = 10;
-    private static final int PHASE_THREE_POST_REQ_COUNT = 100;
-
+    private static final int PHASE_THREE_POST_REQ_COUNT = 1000;
+    private static final int PHASE_ONE_TWO_SECOND_GET_COUNT = 0;
 
     private static final Logger logger =
-            LogManager.getLogger(PartOneClient.class);
+            LogManager.getLogger(PartTwoClient.class);
 
     public static void main(String[] args) throws InterruptedException, IOException{
-        logger.log(Level.INFO, "Client Starting...........");
+        logger.log(Level.INFO, "Client Part Two Starting...........");
         Optional<Parameters> clientParams = Parameters.parsePropertiesFile(CONFIG_FILE_PATH);
 
         if(clientParams.isPresent()) {
             final Parameters parameters = clientParams.get();
+
+            RequestStatistics requestStatistics =
+                    new RequestStatistics("outputData" + parameters.getMaxThreadCount() + "Threads.csv");
+            Thread statsWriteThread = requestStatistics.startWritingToCsv();
 
             int maxThreads = parameters.getMaxThreadCount();
             int totalThreads = maxThreads + maxThreads/2;
@@ -71,9 +77,11 @@ public class PartOneClient {
                     PHASE_ONE_TIME_START,
                     PHASE_ONE_TIME_END,
                     PHASE_ONE_GET_REQ_COUNT,
+                    PHASE_ONE_TWO_SECOND_GET_COUNT,
                     PHASE_ONE_POST_REQ_COUNT,
                     successCount,
-                    failureCount);
+                    failureCount,
+                    requestStatistics);
 
             phaseOneLatch.await();
 
@@ -86,9 +94,11 @@ public class PartOneClient {
                     PHASE_TWO_TIME_START,
                     PHASE_TWO_TIME_END,
                     PHASE_TWO_GET_REQ_COUNT,
+                    PHASE_ONE_TWO_SECOND_GET_COUNT,
                     PHASE_TWO_POST_REQ_COUNT,
                     successCount,
-                    failureCount);
+                    failureCount,
+                    requestStatistics);
 
             phaseTwoLatch.await();
 
@@ -101,21 +111,26 @@ public class PartOneClient {
                     PHASE_THREE_TIME_START,
                     PHASE_THREE_TIME_END,
                     PHASE_THREE_GET_REQ_COUNT,
+                    PHASE_THREE_GET_REQ_COUNT,
                     PHASE_THREE_POST_REQ_COUNT,
                     successCount,
-                    failureCount);
+                    failureCount,
+                    requestStatistics);
 
-            phaseThreeLatch.await();
             totalCountDownLatch.await();
-            logger.log(Level.INFO, "Client processed all requests");
 
+            logger.log(Level.INFO, "Client processed all requests");
             long endTime = System.currentTimeMillis();
 
-            printResults(parameters, programStartTime, endTime, successCount, failureCount);
+            requestStatistics.addStatsToQueue(Collections.emptyList());
+            statsWriteThread.join();
 
+            requestStatistics.startCalculation();
+            requestStatistics.setVals();
+
+            printResults(requestStatistics, parameters, programStartTime, endTime, successCount, failureCount);
         } else {
             logger.log(Level.DEBUG, "Unable to load parameters config file");
-            System.exit(1);
         }
         logger.log(Level.INFO, "Client shutting down..........");
     }
@@ -128,9 +143,11 @@ public class PartOneClient {
             int startTime,
             int endTime,
             int getRequestCount,
+            int getRequestCountPhase3,
             int postRequestCount,
             AtomicInteger successCount,
-            AtomicInteger failureCount) {
+            AtomicInteger failureCount,
+            RequestStatistics requestStatistics) {
 
         int numberSkiers = parameters.getSkierCount();
         int maxThreads = parameters.getMaxThreadCount();
@@ -141,12 +158,14 @@ public class PartOneClient {
                     int skierIdStart = i * numberSkiersPerThread + 1;
                     int skierIdStop = (i + 1) * numberSkiersPerThread;
 
-                    PartOneThread clientThread =
-                            PartOneThread.builder()
+                    PartTwoThread clientThread =
+                            PartTwoThread.builder()
                                     .serverAddress(parameters.getHostServerAddress())
+                                    .day(parameters.getSkiDayNumber())
                                     .phaseLatch(phaseLatch)
                                     .endLatch(endLatch)
                                     .getRequestCount(getRequestCount)
+                                    .getRequestCountPhaseThree(getRequestCountPhase3)
                                     .postRequestCount(postRequestCount)
                                     .liftCount(parameters.getLiftCount())
                                     .startTime(startTime)
@@ -156,21 +175,40 @@ public class PartOneClient {
                                     .resortName(parameters.getResortId())
                                     .successCount(successCount)
                                     .failureCount(failureCount)
+                                    .requestStatistics(requestStatistics)
                                     .build();
 
                     (new Thread(clientThread)).start();
                 });
     }
 
-    private static void printResults(Parameters parameters, long startTime, long endTime,
-                                     AtomicInteger successCount, AtomicInteger failureCount) {
-        double wallTime = (endTime - startTime) / MILLISECONDS_IN_SECOND;
+    private static void printResults(
+            RequestStatistics requestStatistics,
+            Parameters parameters,
+            long startTime,
+            long endTime,
+            AtomicInteger successCount,
+            AtomicInteger failureCount) {
+
+        double wallTime = (endTime - startTime)/MILLISECONDS_IN_SECOND;
         double throughput = (successCount.get() + failureCount.get()) / wallTime;
 
         System.out.println("Max Threads: " + parameters.getMaxThreadCount());
         System.out.println("Number of Successful Requests Sent: " + successCount);
         System.out.println("Number of Unsuccessful Requests: " + failureCount);
-        System.out.println("Wall Time(s): " + wallTime);
-        System.out.println("Throughput(req/s): " + throughput);
+        System.out.println("Total Wall Time(s): " + wallTime);
+        System.out.println("Throughput (req/s): " + throughput);
+        System.out.println("Mean POST response time(ms): " + requestStatistics.getMeanPostLatency());
+        System.out.println("Mean GET1 response time(ms): " + requestStatistics.getMeanGet1Latency());
+        System.out.println("Mean GET2 response time(ms): " + requestStatistics.getMeanGet2Latency());
+        System.out.println("Median POST response time(ms): " + requestStatistics.getMedianPostLatency());
+        System.out.println("Median GET1 response time(ms): " + requestStatistics.getMedianGet1Latency());
+        System.out.println("Median GET2 response time(ms): " + requestStatistics.getMedianGet2Latency());
+        System.out.println("Max POST response time(ms): " + requestStatistics.getMaxPostResponseTime());
+        System.out.println("Max GET1 response time(ms): " + requestStatistics.getMaxGet1ResponseTime());
+        System.out.println("Max GET2 response time(ms): " + requestStatistics.getMaxGet2ResponseTime());
+        System.out.println("99th Percentile POST response time(ms): " + requestStatistics.getP99PostResponseTime());
+        System.out.println("99th Percentile GET1 response time(ms): " + requestStatistics.getP99Get1ResponseTime());
+        System.out.println("99th Percentile GET2 response time(ms): " + requestStatistics.getP99Get2ResponseTime());
     }
 }
