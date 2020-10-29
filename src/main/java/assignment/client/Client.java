@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 
-public class PartTwoClient {
+public class Client {
     private static final String CONFIG_FILE_PATH = "client_config.properties";
     private static final double MILLISECONDS_IN_SECOND = 1000.0;
 
@@ -37,7 +37,7 @@ public class PartTwoClient {
     private static final int PHASE_ONE_TWO_SECOND_GET_COUNT = 0;
 
     private static final Logger logger =
-            LogManager.getLogger(PartTwoClient.class);
+            LogManager.getLogger(Client.class);
 
     public static void main(String[] args) throws InterruptedException, IOException{
         logger.log(Level.INFO, "Client Part Two Starting...........");
@@ -158,8 +158,8 @@ public class PartTwoClient {
                     int skierIdStart = i * numberSkiersPerThread + 1;
                     int skierIdStop = (i + 1) * numberSkiersPerThread;
 
-                    PartTwoThread clientThread =
-                            PartTwoThread.builder()
+                    ClientThread clientThread =
+                            ClientThread.builder()
                                     .serverAddress(parameters.getHostServerAddress())
                                     .day(parameters.getSkiDayNumber())
                                     .phaseLatch(phaseLatch)

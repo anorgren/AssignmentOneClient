@@ -22,14 +22,14 @@ import java.util.stream.IntStream;
 
 @Builder
 @AllArgsConstructor
-public class PartTwoThread implements Runnable {
+public class ClientThread implements Runnable {
     private static final int MINUTES_IN_DAY = 420;
     private static final int POST_SUCCESS_CODE = 201;
     private static final int GET_SUCCESS_CODE = 200;
     private static final int GET_SUCCESS_CODE_NO_DATA = 204;
 
     private static final Logger logger =
-            LogManager.getLogger(PartTwoThread.class);
+            LogManager.getLogger(ClientThread.class);
 
     private int skierIdBegin;
     private int skierIdEnd;
